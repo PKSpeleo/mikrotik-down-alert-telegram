@@ -1,7 +1,9 @@
 MikroTik PPPoE link-up watcher → Telegram
 
 Overview
-This repository contains a single MikroTik RouterOS script that detects when a PPPoE interface comes back up and sends a formatted notification to a Telegram chat. It keeps a running count of link downs (as reported by RouterOS), includes timestamps for the last DOWN and last UP events, and avoids duplicate messages using debounce and an anti-duplicate guard.
+This repository contains MikroTik RouterOS scripts for monitoring PPPoE interface status with Telegram notifications:
+- Main monitoring script that detects when a PPPoE interface comes back up and sends a formatted notification to a Telegram chat. It keeps a running count of link downs (as reported by RouterOS), includes timestamps for the last DOWN and last UP events, and avoids duplicate messages using debounce and an anti-duplicate guard.
+- Testing utility script that resets all global variables to emulate router reboot and observe script behavior.
 
 What the script does
 - Monitors a PPPoE interface’s last-link-up-time and last-link-down-time.
@@ -56,7 +58,19 @@ Notes
 - Make sure both the script and the scheduler entry have policies set to read, write, test, policy. Otherwise, RouterOS may not persist global variables as expected until the next run.
 
 Files
-- last-link-up-time.rsc — the RouterOS script you install on your router.
+- last-link-up-time.rsc — the main RouterOS monitoring script you install on your router (scheduled to run periodically).
+- reset-global-vars.rsc — testing/debugging utility script that resets all global variables used by the monitoring script.
+
+Testing and debugging (reset-global-vars.rsc)
+The reset-global-vars.rsc script allows you to emulate a router reboot by clearing all global variables (frPrevLastUp, tgText, frCandUp, frCandSeen, frNotifiedUp, frBusy) used by the main monitoring script. This is useful for:
+- Testing how the main script behaves on first run (when no variables are set).
+- Observing script reaction after simulated reboot without actually rebooting the router.
+- Debugging anti-duplicate and debounce logic.
+
+Usage:
+1) Install as a script: /system script add name=FRv5.0-reset-vars policy=read,write,test,policy source="<paste reset-global-vars.rsc content>"
+2) Run manually when needed: /system script run FRv5.0-reset-vars
+3) Check logs to see which variables were reset: /log print where message~"FRv5.0-reset"
 
 IDE syntax highlighting (VS Code and JetBrains)
 - The folder vscode_mikrotik_routeros_script-master contains a VS Code extension that provides syntax highlighting for MikroTik RouterOS scripts.
