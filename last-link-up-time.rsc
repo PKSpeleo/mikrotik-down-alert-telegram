@@ -1,6 +1,6 @@
 # ========= FRv4.0d-uptime-watch (ROS 7.20.x) =========
-# Триггер: смена last-link-up-time у PPPoE-интерфейса (с дебаунсом).
-# Сообщение в Telegram строго как в образце:
+# Trigger: change of last-link-up-time on the PPPoE interface (with debounce).
+# Telegram message exactly as in the sample:
 # <ver>: <iface>
 # Total downs: <downs>
 # Last DOWN: <lastDown>
@@ -9,15 +9,15 @@
 :local ver "FRv4.0d"
 :local ppp "Telekom-pppoe-out"
 
-# Telegram (минимальное URL-кодирование: пробелы и \n)
+# Telegram (minimal URL encoding: spaces and \n)
 :local tgToken "xxx"
 :local tgChat  "xxx"
 
-# Глобалы
+# Globals
 :global frPrevLastUp
 :global tgText
 
-# Антидубли (дебаунс + мьютекс)
+# Anti-duplicates (debounce + mutex)
 :global frCandUp
 :global frCandSeen
 :global frNotifiedUp
@@ -25,25 +25,25 @@
 
 :do {
 
-  # Мьютекс от параллельных запусков
+  # Mutex to prevent concurrent runs
   :if ([:typeof $frBusy] != "nil" && $frBusy=true) do={ :return }
   :set frBusy true
 
-  # Идентификатор интерфейса
+  # Interface identifier
   :local ifId [/interface find where name=$ppp]
   :if ([:len $ifId]=0) do={ :set frBusy false ; :log warning ($ver.": iface not found: ".$ppp) ; :return }
 
-  # Текущие значения (с защитой)
+  # Current values (with protection)
   :local lastUp ""    ; :do { :set lastUp    [/interface get $ifId last-link-up-time]   } on-error={ :set lastUp "" }
   :local lastDown ""  ; :do { :set lastDown  [/interface get $ifId last-link-down-time] } on-error={ :set lastDown "" }
   :local downs ""     ; :do { :set downs     [/interface get $ifId link-downs]          } on-error={ :set downs "" }
 
-  # Инициализация антидребезга
+  # Debounce initialization
   :if ([:typeof $frCandUp] = "nil" || [:len [:tostr $frCandUp]] = 0) do={ :set frCandUp "" }
   :if ([:typeof $frCandSeen] = "nil" || [:len [:tostr $frCandSeen]] = 0) do={ :set frCandSeen 0 }
   :if ([:typeof $frNotifiedUp] = "nil") do={ :set frNotifiedUp "" }
 
-  # Дебаунс last-link-up-time (2 одинаковых чтения подряд)
+  # Debounce last-link-up-time (2 identical reads in a row)
   :if ([:len $lastUp] > 0) do={
     :if ($frCandUp = $lastUp) do={
       :set frCandSeen ($frCandSeen + 1)
@@ -55,7 +55,7 @@
     :set frCandSeen 0
   }
 
-  # Определяем изменение (и первый запуск). Не шлём, пока lastUp не стабилен два раза.
+  # Detect a change (and the first run). Do not send until lastUp is stable twice.
   :local changed false
   :if ([:len $lastUp] > 0) do={
     :if ([:len [:tostr $frNotifiedUp]] = 0) do={
@@ -69,7 +69,7 @@
 
   :if ($changed) do={
 
-    # Сообщение в точном формате
+    # Message in the exact format
     :local msg ($ver.": " . $ppp . "\n" . \
                 "Total downs: " . $downs . "\n" . \
                 "Last DOWN: " . $lastDown . "\n" . \
@@ -77,7 +77,7 @@
 
     :set tgText $msg
 
-    # Мини-энкодер (пробелы и переносы строк)
+    # Mini-encoder (spaces and line breaks)
     :local s $msg ; :local out ""
     :for i from=0 to=([:len $s]-1) do={
       :local ch [:pick $s $i ($i+1)]
@@ -90,14 +90,14 @@
     :do { /tool fetch url=$url keep-result=no http-method=get } on-error={ :log warning ($ver.": tg send failed") }
     :log info ($ver.": UP — notified")
 
-    # Запоминаем последнее уведомлённое значение (антидубли)
+    # Store the last notified value (anti-duplicate)
     :set frNotifiedUp $lastUp
   }
 
-  # Запоминаем последнее значение (как в исходнике)
+  # Store the last value (as in the source)
   :set frPrevLastUp $lastUp
 
-  # Снять мьютекс
+  # Release mutex
   :set frBusy false
 
 } on-error={
