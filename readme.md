@@ -35,19 +35,19 @@ How it works (internals)
 
 Installation (via RouterOS Script + Scheduler)
 1) Create a RouterOS script from the file content:
-   - WinBox/WebFig: System → Scripts → Add New → paste contents of last-link-up-time.rsc → name it e.g. FRv4.0d-uptime-watch.
+   - WinBox/WebFig: System → Scripts → Add New → paste contents of last-link-up-time.rsc → name it e.g. FRv5.0-uptime-watch.
    - IMPORTANT: set Policy to read, write, test, policy for this script.
    - CLI example:
-     /system script add name=FRv4.0d-uptime-watch policy=read,write,test,policy source="<paste the file content here>"
+     /system script add name=FRv5.0-uptime-watch policy=read,write,test,policy source="<paste the file content here>"
 
 2) Schedule execution on startup and every 5 seconds:
    - WinBox/WebFig: System → Scheduler → Add New
-       • On Event: /system script run FRv4.0d-uptime-watch
+       • On Event: /system script run FRv5.0-uptime-watch
        • Start Time: startup
        • Interval: 00:00:05
        • Policy: read, write, test, policy (must match the script’s policies)
    - CLI example:
-     /system scheduler add name=fr-uptime-watch on-event="/system script run FRv4.0d-uptime-watch" start-time=startup interval=5s policy=read,write,test,policy
+     /system scheduler add name=fr-uptime-watch on-event="/system script run FRv5.0-uptime-watch" start-time=startup interval=5s policy=read,write,test,policy
 
 Notes
 - The script is designed for periodic polling. Debounce and anti-duplicate guards minimize redundant messages.
