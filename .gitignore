@@ -1,0 +1,2 @@
+# Ignore Telegram credentials file (contains sensitive data)
+telegram.env
