@@ -21,10 +21,10 @@ Requirements
 
 Configuration
 Open last-link-up-time.rsc and adjust these variables near the top of the file:
-- ver: script version label used in logs/messages (optional).
-- ppp: name of your PPPoE interface, e.g. "Telekom-pppoe-out".
-- tgToken: your Telegram bot token.
-- tgChat: the numeric chat ID (or @channel_username if you allow it).
+- scriptVersion: script version label used in logs/messages (optional).
+- pppInterfaceName: name of your PPPoE interface, e.g. "Telekom-pppoe-out".
+- telegramBotToken: your Telegram bot token.
+- telegramChatId: the numeric chat ID (or @channel_username if you allow it).
 
 How it works (internals)
 - Reads interface fields: last-link-up-time, last-link-down-time, and link-downs (with error protection).
