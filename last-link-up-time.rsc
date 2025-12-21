@@ -1,4 +1,4 @@
-# ========= FRv5.0-uptime-watch (ROS 7.20.x) =========
+# ========= FRv5.1-uptime-watch (ROS 7.20.x) =========
 # Purpose: watch for changes of last-link-up-time on the PPPoE interface (with debounce)
 # and send a notification to Telegram.
 # Telegram message format (must stay exactly the same):
@@ -7,7 +7,7 @@
 # Last DOWN: <lastDown>
 # Last UP:        <lastUp>
 
-:local scriptVersion "FRv5.0"
+:local scriptVersion "FRv5.1"
 :local pppInterfaceName "Telekom-pppoe-out"
 
 # Debounce configuration: minimum number of consecutive stable readings required
@@ -25,6 +25,7 @@
 :global frCandUp
 :global frCandSeen
 :global frNotifiedUp
+:global frNotifiedDowns
 :global frBusy
 
 :do {
@@ -50,6 +51,7 @@
   :if ([:typeof $frCandUp] = "nil" || [:len [:tostr $frCandUp]] = 0) do={ :set frCandUp "" }
   :if ([:typeof $frCandSeen] = "nil" || [:len [:tostr $frCandSeen]] = 0) do={ :set frCandSeen 0 }
   :if ([:typeof $frNotifiedUp] = "nil") do={ :set frNotifiedUp "" }
+  :if ([:typeof $frNotifiedDowns] = "nil") do={ :set frNotifiedDowns "" }
 
   # ----- Debounce last-link-up-time (require stable readings) -----
   :if ([:len $lastLinkUpTime] > 0) do={
@@ -65,14 +67,17 @@
 
   # ----- Change detection (and first run) -----
   # Do not send a message until last-link-up-time is stable for debounceThreshold reads.
+  # Require BOTH time AND counter to change to avoid false positives from time interpretation differences.
   :local isLastLinkUpTimeChanged false
   :local hasValidUpTime ([:len $lastLinkUpTime] > 0)
+  :local hasValidDownCount ([:len [:tostr $linkDownCount]] > 0)
   :local isStable ($frCandSeen >= $debounceThreshold)
-  :local isFirstRun ([:len [:tostr $frNotifiedUp]] = 0)
-  :local hasChanged ($frNotifiedUp != $lastLinkUpTime)
+  :local isFirstRun ([:len [:tostr $frNotifiedUp]] = 0 || [:len [:tostr $frNotifiedDowns]] = 0)
+  :local hasTimeChanged ($frNotifiedUp != $lastLinkUpTime)
+  :local hasCountChanged ([:tostr $frNotifiedDowns] != [:tostr $linkDownCount])
   
-  :if ($hasValidUpTime && $isStable) do={
-    :if ($isFirstRun || $hasChanged) do={
+  :if ($hasValidUpTime && $hasValidDownCount && $isStable) do={
+    :if ($isFirstRun || ($hasTimeChanged && $hasCountChanged)) do={
       :set isLastLinkUpTimeChanged true
     }
   }
@@ -107,8 +112,9 @@
     :do { /tool fetch url=$url keep-result=no http-method=get } on-error={ :log warning ($scriptVersion.": tg send failed") }
     :log info ($scriptVersion.": UP - notified")
 
-    # Store the last sent last-link-up-time value (anti-duplicate)
+    # Store the last sent values (anti-duplicate)
     :set frNotifiedUp $lastLinkUpTime
+    :set frNotifiedDowns $linkDownCount
   }
 
   # Store the last read value (compatibility with the original script)
@@ -122,4 +128,4 @@
   :log warning ($scriptVersion.": caught-error")
 }
 
-# ========= /FRv5.0-uptime-watch =========
+# ========= /FRv5.1-uptime-watch =========

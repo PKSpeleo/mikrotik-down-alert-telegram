@@ -1,9 +1,9 @@
-# ========= FRv5.0-reset-vars (ROS 7.20.x) =========
+# ========= FRv5.1-reset-vars (ROS 7.20.x) =========
 # Purpose: Reset (unset) all global variables used by the uptime-watch script
 # to emulate router reboot and observe script behavior during testing.
 # This is a testing/debugging utility script.
 
-:local scriptVersion "FRv5.0-reset"
+:local scriptVersion "FRv5.1-reset"
 
 :do {
 
@@ -15,6 +15,7 @@
   :global frCandUp
   :global frCandSeen
   :global frNotifiedUp
+  :global frNotifiedDowns
   :global frBusy
 
   :local resetCount 0
@@ -71,6 +72,16 @@
   } on-error={ :log warning ($scriptVersion.": failed to reset 'frNotifiedUp'") }
 
   :do {
+    :if ([:typeof $frNotifiedDowns] != "nil") do={
+      :set frNotifiedDowns
+      :set resetCount ($resetCount + 1)
+      :log info ($scriptVersion.": reset 'frNotifiedDowns'")
+    } else={
+      :log info ($scriptVersion.": 'frNotifiedDowns' already nil")
+    }
+  } on-error={ :log warning ($scriptVersion.": failed to reset 'frNotifiedDowns'") }
+
+  :do {
     :if ([:typeof $frBusy] != "nil") do={
       :set frBusy
       :set resetCount ($resetCount + 1)
@@ -87,4 +98,4 @@
   :log warning ($scriptVersion.": caught-error during reset")
 }
 
-# ========= /FRv5.0-reset-vars =========
+# ========= /FRv5.1-reset-vars =========
