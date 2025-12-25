@@ -1,4 +1,4 @@
-# ========= FRv5.1-uptime-watch (ROS 7.20.x) =========
+# ========= FRv5.2-uptime-watch (ROS 7.20.x) =========
 # Purpose: watch for changes of last-link-up-time on the PPPoE interface (with debounce)
 # and send a notification to Telegram.
 # Telegram message format (must stay exactly the same):
@@ -7,7 +7,7 @@
 # Last DOWN: <lastDown>
 # Last UP:        <lastUp>
 
-:local scriptVersion "FRv5.1"
+:local scriptVersion "FRv5.2"
 :local pppInterfaceName "Telekom-pppoe-out"
 
 # Debounce configuration: minimum number of consecutive stable readings required
@@ -72,7 +72,7 @@
   :local hasValidUpTime ([:len $lastLinkUpTime] > 0)
   :local hasValidDownCount ([:len [:tostr $linkDownCount]] > 0)
   :local isStable ($frCandSeen >= $debounceThreshold)
-  :local isFirstRun ([:len [:tostr $frNotifiedUp]] = 0 || [:len [:tostr $frNotifiedDowns]] = 0)
+  :local isFirstRun ([:len [:tostr $frNotifiedUp]] = 0)
   :local hasTimeChanged ($frNotifiedUp != $lastLinkUpTime)
   :local hasCountChanged ([:tostr $frNotifiedDowns] != [:tostr $linkDownCount])
   
@@ -128,4 +128,4 @@
   :log warning ($scriptVersion.": caught-error")
 }
 
-# ========= /FRv5.1-uptime-watch =========
+# ========= /FRv5.2-uptime-watch =========
