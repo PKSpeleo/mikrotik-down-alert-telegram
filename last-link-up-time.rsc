@@ -1,4 +1,4 @@
-# ========= FRv5.2-uptime-watch (ROS 7.20.x) =========
+# ========= FRv5.3-uptime-watch (ROS 7.20.x) =========
 # Purpose: watch for changes of last-link-up-time on the PPPoE interface (with debounce)
 # and send a notification to Telegram.
 # Telegram message format (must stay exactly the same):
@@ -7,7 +7,7 @@
 # Last DOWN: <lastDown>
 # Last UP:        <lastUp>
 
-:local scriptVersion "FRv5.2"
+:local scriptVersion "FRv5.3"
 :local pppInterfaceName "Telekom-pppoe-out"
 
 # Debounce configuration: minimum number of consecutive stable readings required
@@ -46,6 +46,7 @@
   :local lastLinkUpTime   "" ; :do { :set lastLinkUpTime   [/interface get $pppInterfaceId last-link-up-time]   } on-error={ :set lastLinkUpTime   "" }
   :local lastLinkDownTime "" ; :do { :set lastLinkDownTime [/interface get $pppInterfaceId last-link-down-time] } on-error={ :set lastLinkDownTime "" }
   :local linkDownCount    "" ; :do { :set linkDownCount    [/interface get $pppInterfaceId link-downs]          } on-error={ :set linkDownCount    "" }
+  :local isRunning        false; :do { :set isRunning        [/interface get $pppInterfaceId running]             } on-error={ :set isRunning        false }
 
   # ----- Debounce structures initialization -----
   :if ([:typeof $frCandUp] = "nil" || [:len [:tostr $frCandUp]] = 0) do={ :set frCandUp "" }
@@ -76,7 +77,7 @@
   :local hasTimeChanged ($frNotifiedUp != $lastLinkUpTime)
   :local hasCountChanged ([:tostr $frNotifiedDowns] != [:tostr $linkDownCount])
   
-  :if ($hasValidUpTime && $hasValidDownCount && $isStable) do={
+  :if ($hasValidUpTime && $hasValidDownCount && $isStable && $isRunning) do={
     :if ($isFirstRun || ($hasTimeChanged && $hasCountChanged)) do={
       :set isLastLinkUpTimeChanged true
     }
@@ -109,12 +110,16 @@
     }
 
     :local url ("https://api.telegram.org/bot" . $telegramBotToken . "/sendMessage?chat_id=" . $telegramChatId . "&text=" . $encodedText . "&disable_web_page_preview=1")
-    :do { /tool fetch url=$url keep-result=no http-method=get } on-error={ :log warning ($scriptVersion.": tg send failed") }
-    :log info ($scriptVersion.": UP - notified")
+    :do { 
+      /tool fetch url=$url keep-result=no http-method=get 
+      :log info ($scriptVersion.": UP - notified")
 
-    # Store the last sent values (anti-duplicate)
-    :set frNotifiedUp $lastLinkUpTime
-    :set frNotifiedDowns $linkDownCount
+      # Store the last sent values (anti-duplicate) - ONLY on success
+      :set frNotifiedUp $lastLinkUpTime
+      :set frNotifiedDowns $linkDownCount
+    } on-error={ 
+      :log warning ($scriptVersion.": tg send failed - will retry next run") 
+    }
   }
 
   # Store the last read value (compatibility with the original script)
@@ -128,4 +133,4 @@
   :log warning ($scriptVersion.": caught-error")
 }
 
-# ========= /FRv5.2-uptime-watch =========
+# ========= /FRv5.3-uptime-watch =========

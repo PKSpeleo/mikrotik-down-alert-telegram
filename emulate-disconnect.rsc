@@ -1,10 +1,10 @@
-# ========= FRv5.2-emulate-disconnect (ROS 7.20.x) =========
+# ========= FRv5.3-emulate-disconnect (ROS 7.20.x) =========
 # Purpose: Emulate a PPPoE disconnect event for testing purposes.
 # This script reads current interface values and global variables,
 # logs them, then modifies global variables to simulate a new disconnect.
 # This is a testing/debugging utility script.
 
-:local scriptVersion "FRv5.2-emulate"
+:local scriptVersion "FRv5.3-emulate"
 :local pppInterfaceName "Telekom-pppoe-out"
 
 :do {
@@ -92,4 +92,4 @@
   :log warning ($scriptVersion.": caught-error during emulation")
 }
 
-# ========= /FRv5.1-emulate-disconnect =========
+# ========= /FRv5.3-emulate-disconnect =========

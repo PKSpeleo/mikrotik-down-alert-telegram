@@ -37,19 +37,19 @@ How it works (internals)
 
 Installation (via RouterOS Script + Scheduler)
 1) Create a RouterOS script from the file content:
-   - WinBox/WebFig: System → Scripts → Add New → paste contents of last-link-up-time.rsc → name it e.g. FRv5.0-uptime-watch.
+   - WinBox/WebFig: System → Scripts → Add New → paste contents of last-link-up-time.rsc → name it e.g. FRv5.3-uptime-watch.
    - IMPORTANT: set Policy to read, write, test, policy for this script.
    - CLI example:
-     /system script add name=FRv5.0-uptime-watch policy=read,write,test,policy source="<paste the file content here>"
+     /system script add name=FRv5.3-uptime-watch policy=read,write,test,policy source="<paste the file content here>"
 
 2) Schedule execution on startup and every 5 seconds:
    - WinBox/WebFig: System → Scheduler → Add New
-       • On Event: /system script run FRv5.0-uptime-watch
+       • On Event: /system script run FRv5.3-uptime-watch
        • Start Time: startup
        • Interval: 00:00:05
        • Policy: read, write, test, policy (must match the script’s policies)
    - CLI example:
-     /system scheduler add name=fr-uptime-watch on-event="/system script run FRv5.0-uptime-watch" start-time=startup interval=5s policy=read,write,test,policy
+     /system scheduler add name=fr-uptime-watch on-event="/system script run FRv5.3-uptime-watch" start-time=startup interval=5s policy=read,write,test,policy
 
 Notes
 - The script is designed for periodic polling. Debounce and anti-duplicate guards minimize redundant messages.
@@ -68,9 +68,9 @@ The reset-global-vars.rsc script allows you to emulate a router reboot by cleari
 - Debugging anti-duplicate and debounce logic.
 
 Usage:
-1) Install as a script: /system script add name=FRv5.0-reset-vars policy=read,write,test,policy source="<paste reset-global-vars.rsc content>"
-2) Run manually when needed: /system script run FRv5.0-reset-vars
-3) Check logs to see which variables were reset: /log print where message~"FRv5.0-reset"
+1) Install as a script: /system script add name=FRv5.3-reset-vars policy=read,write,test,policy source="<paste reset-global-vars.rsc content>"
+2) Run manually when needed: /system script run FRv5.3-reset-vars
+3) Check logs to see which variables were reset: /log print where message~"FRv5.3-reset"
 
 IDE syntax highlighting (VS Code and JetBrains)
 - The folder vscode_mikrotik_routeros_script-master contains a VS Code extension that provides syntax highlighting for MikroTik RouterOS scripts.

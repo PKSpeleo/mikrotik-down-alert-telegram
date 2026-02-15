@@ -1,9 +1,9 @@
-# ========= FRv5.2-show-vars (ROS 7.20.x) =========
+# ========= FRv5.3-show-vars (ROS 7.20.x) =========
 # Purpose: Display all global variables used by the uptime-watch script
 # in the system log for debugging and monitoring purposes.
 # This is a testing/debugging utility script.
 
-:local scriptVersion "FRv5.2-show"
+:local scriptVersion "FRv5.3-show"
 
 :do {
 
@@ -33,4 +33,4 @@
   :log warning ($scriptVersion.": caught-error while reading variables")
 }
 
-# ========= /FRv5.2-show-vars =========
+# ========= /FRv5.3-show-vars =========
